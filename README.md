@@ -10,7 +10,7 @@ HTML + CSS + JAVASCRIPT
 - Delete task
 
 ## How to Run
-step1: navigate to TaskTrackerApplication
+step1: navigate to TaskTrackerApplication  
 step2: open index.html
 
 ## Challenges Faced
