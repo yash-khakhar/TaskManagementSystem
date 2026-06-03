@@ -37,13 +37,14 @@ function loadAllTasks() {
                 taskItem.style.backgroundColor = "#f2f2f2";
                 completedContainer.appendChild(taskItem);
             }
-        });
+        })
     }
 }
 
-loadAllTasks();
+loadAllTasks()
 
 addTaskButton.addEventListener("click", () => {
+
     const task = taskInput.value.trim();
     const priority = priorityInput.value;
     const deadline = deadlineInput.value;
@@ -67,31 +68,43 @@ addTaskButton.addEventListener("click", () => {
         return; 
     }
 
-    createTaskElement(task, priority, deadline);
-    loadAllTasks();
+    pendingContainer.appendChild(createTaskElement(task, priority, deadline));
 
     taskInput.value = "";
     priorityInput.value = "top";
     deadlineInput.value = "";
 
-});
+})
 
 pendingContainer.addEventListener("click", (event) => {
+
     const taskItem = event.target.parentElement;
     
     if (event.target.classList.contains("mark-done")) {
+
         const taskObj = tasksList.find(t => t.taskId === taskItem.id);
+
         if (taskObj) {
+
             taskObj.status = "completed";
             localStorage.setItem("tasksList", JSON.stringify(tasksList));
-            loadAllTasks();
+
+            const doneBtn = taskItem.querySelector(".mark-done")
+            if (doneBtn) doneBtn.remove()
+
+            pendingContainer.removeChild(taskItem)
+            completedContainer.appendChild(taskItem)
         }
     }
 
     if (event.target.classList.contains("delete")) {
-        deleteTask(taskItem);
+
+        pendingContainer.removeChild(taskItem)
+        deleteTask(taskItem.id)
+
     }
-});
+
+})
 
 let dragged;
 
@@ -107,10 +120,18 @@ completedContainer.addEventListener("drop", (event) => {
     
     event.preventDefault();
     const taskObj = tasksList.find(t => t.taskId === dragged.id)
+    
     if (taskObj) {
+
         taskObj.status = "completed"
         localStorage.setItem("tasksList", JSON.stringify(tasksList))
-        loadAllTasks()
+
+        const doneBtn = dragged.querySelector(".mark-done")
+        if (doneBtn) doneBtn.remove()
+
+        pendingContainer.removeChild(dragged)
+        completedContainer.appendChild(dragged)
+
     }
 
 })
@@ -118,12 +139,27 @@ completedContainer.addEventListener("drop", (event) => {
 completedContainer.addEventListener("click", (event) => {
     if (event.target.classList.contains("delete")) {
         const taskItem = event.target.parentElement;
-        deleteTask(taskItem);
+        completedContainer.removeChild(taskItem)
+        deleteTask(taskItem.id)
     }
 });
 
 function createTaskElement(task, priority, deadline) {
+    
     const taskId = crypto.randomUUID();
+
+    const taskItem = document.createElement("div");
+    taskItem.classList.add("task");
+    taskItem.id = taskId;
+    taskItem.draggable = true
+
+    taskItem.innerHTML = `
+        <p>${task}</p>
+        <p>Priority: ${priority}</p>
+        <p>Deadline: ${deadline}</p>
+        <button class="mark-done">Mark Done</button>
+        <button class="delete">Delete</button>
+    `;
     
     const taskObj = {
         taskId,
@@ -135,16 +171,17 @@ function createTaskElement(task, priority, deadline) {
 
     tasksList.push(taskObj);
     localStorage.setItem("tasksList", JSON.stringify(tasksList));
+
+    return taskItem
 }
 
-function deleteTask(taskItem) {
-    const userConfirmation = confirm("Are you sure you want to delete task?");
+function deleteTask(taskId) {
+    const userConfirmation = confirm("Are you sure you want to delete task?")
     if (userConfirmation) {
-        const index = tasksList.findIndex(t => t.taskId === taskItem.id);
+        const index = tasksList.findIndex(t => t.taskId === taskId);
         if (index !== -1) {
-            tasksList.splice(index, 1);
-            localStorage.setItem("tasksList", JSON.stringify(tasksList));
-            loadAllTasks();
+            tasksList.splice(index, 1)
+            localStorage.setItem("tasksList", JSON.stringify(tasksList))
         }
     }
 }
